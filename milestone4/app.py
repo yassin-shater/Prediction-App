@@ -60,7 +60,7 @@ if uploaded_df is not None and selected_target is not None:
         selected_cat_for_avg = st.radio("Select categorical variable for average target plot:", categorical_cols)
         avg_df = uploaded_df.groupby(selected_cat_for_avg)[selected_target].mean().reset_index()
 
-        st.write("Average of {} by {}:".format(selected_target, selected_cat_for_avg))
+        st.write(f"Average of {selected_target} by {selected_cat_for_avg}:")
         st.bar_chart(data=avg_df, x=selected_cat_for_avg, y=selected_target)
 
     # Correlation with target for numeric features
@@ -99,11 +99,10 @@ if uploaded_df is not None and selected_target is not None:
             chosen_num = [f for f in selected_features if f in numeric_cols]
 
             # Numeric transformer: impute, scale, and optionally add polynomial features
-            # Adjust polynomial degree based on previous milestone findings:
             numeric_transformer = Pipeline(steps=[
                 ("imputer", SimpleImputer(strategy="mean")),
                 ("scaler", MinMaxScaler()),
-                ("poly", PolynomialFeatures(degree=2, include_bias=False))  # use degree from previous milestone if needed
+                ("poly", PolynomialFeatures(degree=2, include_bias=False))  # Adjust if needed
             ])
 
             categorical_transformer = Pipeline(steps=[
@@ -118,13 +117,11 @@ if uploaded_df is not None and selected_target is not None:
                 ]
             )
 
-            # XGBRegressor as determined best in previous milestone
+            # XGBRegressor chosen as best model
             model = Pipeline(steps=[
                 ('preprocessor', preprocessor),
-                ('regressor', XGBRegressor(n_estimators=100, random_state=42))  # You can tune these params
+                ('regressor', XGBRegressor(n_estimators=100, random_state=42))
             ])
-
-            # Train the model
             model.fit(X, y)
             
             # Compute R² on the training set
@@ -135,6 +132,7 @@ if uploaded_df is not None and selected_target is not None:
 #################################
 # 5. Predict Component
 #################################
+# The predict component should only work if we have a trained model and selected features
 if model is not None and len(selected_features) > 0:
     st.subheader("Predict")
     st.write("Enter feature values in the following order (comma-separated):")
@@ -168,4 +166,5 @@ if model is not None and len(selected_features) > 0:
                     X_pred = pd.DataFrame([final_input])
                     pred = model.predict(X_pred)
                     st.write(f"Predicted {selected_target}: {pred[0]:.4f}")
+
 
